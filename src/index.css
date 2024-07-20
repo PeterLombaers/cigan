@@ -1,0 +1,49 @@
+:root {
+    --main-color:rgb(173, 211, 227);
+    --secondary-color:rgb(225, 99, 48):
+}
+html {
+    background-color: var(--main-color);
+    box-sizing: border-box;
+    font-family: "Open Sans";
+
+}
+
+.open-sans-cigan {
+    font-family: "Open Sans", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 300;
+    font-style: normal;
+    font-variation-settings:
+      "wdth" 100;
+  }
+
+.header {
+    text-align: center;
+}
+
+main {
+    display: flex;
+    justify-content: space-around;
+}
+
+.opponents-item {
+    list-style: none;
+    display: flex;
+}
+
+.opponents-item div {
+    display: inline;
+}
+
+.requirements li {
+    list-style: square;
+}
+
+.requirements-rating {
+    display: inline;
+}
+
+.rating-req * {
+    display: inline;
+}
