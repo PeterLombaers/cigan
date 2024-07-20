@@ -91,6 +91,10 @@ function roundsRemaining(opponents) {
     .reduce((a, b) => a + b, 0);
 }
 
+export function roundUpToHalfPoint(scorePerc) {
+  return Math.ceil(scorePerc * 2) / 2;
+}
+
 function reqPerScore(nRounds, opponents, normType) {
   let currentScore = totalScore(opponents);
   let currentRating = totalRating(opponents);
