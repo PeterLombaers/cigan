@@ -47,9 +47,30 @@ const requiredPerformance = {
   WIM: 2249.5,
 };
 
+/**
+ * Given score, number of rounds and norm type, get the required total rating of the
+ * opponents.
+ *
+ * Example
+ * -------
+ * If tournament has 9 rounds, you score 5 points and you want an IM norm then:
+ * - The required performance (Rp) is 2449.5
+ * - You have 5/9 = 0.56 average points (p), so the rating difference (dp) is 43 (see
+ * dp_table.js)
+ * - The required rating average (Ra) is Rp - dp =  2449.5 - 43 = 2406.5
+ * - So the required total rating is 9 * 2406.5 = 21658.5
+ *
+ * @param {number} nRounds Number of rounds in the tournament.
+ * @param {number} score   Player score in the tournament.
+ * @param {normType} normType  Type of norm.
+ * @returns {number}  Required total rating of the opponents.
+ */
 function requiredTotalRating(nRounds, score, normType) {
-  let dp = dpTable[Math.round((100 * score) / nRounds) / 100];
-  return requiredPerformance[normType] * nRounds - dp;
+  const p = Math.round((100 * score) / nRounds) / 100;
+  const dp = dpTable[p];
+  const Rp = requiredPerformance[normType];
+  const Ra = Rp - dp;
+  return Ra * nRounds;
 }
 
 function totalRating(opponents) {
