@@ -1,7 +1,7 @@
 import React from "react";
 import Opponent from "./input/Opponent.jsx";
 import Rounds from "./input/Rounds.jsx";
-import Type from "./input/Type.jsx";
+import Type from "./input/NormType.jsx";
 
 export default function Input({
   nRounds,
