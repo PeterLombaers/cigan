@@ -5,18 +5,9 @@
 html {
     background-color: var(--main-color);
     box-sizing: border-box;
-    font-family: "Open Sans";
+    font-family: "Roboto";
 
 }
-
-.open-sans-cigan {
-    font-family: "Open Sans", sans-serif;
-    font-optical-sizing: auto;
-    font-weight: 300;
-    font-style: normal;
-    font-variation-settings:
-      "wdth" 100;
-  }
 
 .header {
     text-align: center;
