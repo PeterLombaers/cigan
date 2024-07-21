@@ -1,20 +1,34 @@
 import React from "react";
+import ToggleButton from "@mui/material/ToggleButton";
+import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 
 export default function OpponentResult({ round, result, setResult }) {
+  const handleResult = (event, newResult) => {
+    if (newResult === null) {
+      setResult("");
+    } else {
+      setResult(newResult);
+    }
+  };
+
   return (
-    <div className="opponents-result">
-      <label htmlFor={"opponnent-result-" + round}>Result</label>
-      <select
-        name="opponents-result"
-        id={"opponents-result-" + round}
-        value={result}
-        onChange={(e) => setResult(e.target.value)}
-      >
-        <option value=""></option>
-        <option value="win">Win</option>
-        <option value="draw">Draw</option>
-        <option value="loss">Loss</option>
-      </select>
-    </div>
+    <ToggleButtonGroup
+      id={"result-round-" + round}
+      color="primary"
+      value={result}
+      exclusive
+      onChange={handleResult}
+      aria-label="result"
+    >
+      <ToggleButton value="win" aria-label="win">
+        Win
+      </ToggleButton>
+      <ToggleButton value="draw" aria-label="draw">
+        Draw
+      </ToggleButton>
+      <ToggleButton value="loss" aria-label="loss">
+        Loss
+      </ToggleButton>
+    </ToggleButtonGroup>
   );
 }

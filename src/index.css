@@ -3,7 +3,6 @@
     --secondary-color:rgb(225, 99, 48):
 }
 html {
-    background-color: var(--main-color);
     box-sizing: border-box;
     font-family: "Roboto";
 
