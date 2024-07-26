@@ -1,9 +1,10 @@
 import {
+  calculatePerformanceRating,
   roundUpToHalfPoint,
   getRequiredTotalRating,
   getMinRequiredScore,
   getLowestRating,
-} from "./Requirements";
+} from "./Output";
 
 test.each([
   { input: 0, output: 0 },
@@ -48,3 +49,45 @@ test.each([
 ])("lowestRating: [$opponents]", ({ opponents, lowest }) => {
   expect(getLowestRating(opponents)).toBe(lowest);
 });
+
+test.each([
+  {
+    opponents: [
+      { round: 1, rating: 2441, result: "loss" },
+      { round: 2, rating: 2381, result: "loss" },
+      { round: 3, rating: 2409, result: "win" },
+      { round: 4, rating: 2313, result: "draw" },
+      { round: 5, rating: 2357, result: "draw" },
+      { round: 6, rating: 2314, result: "win" },
+      { round: 7, rating: 2410, result: "win" },
+      { round: 8, rating: 2515, result: "draw" },
+    ],
+    performanceRating: 2436,
+  },
+  {
+    opponents: [
+      { round: 1, rating: 2180, result: "loss" },
+      { round: 2, rating: 2185, result: "loss" },
+    ],
+    performanceRating: 1383,
+  },
+  {
+    opponents: [
+      { round: 1, rating: 2277, result: "win" },
+      { round: 2, rating: 2180, result: "draw" },
+      { round: 3, rating: 2322, result: "win" },
+      { round: 4, rating: 2185, result: "draw" },
+      { round: 5, rating: 2308, result: "loss" },
+      { round: 6, rating: 1864, result: "win" },
+      { round: 7, rating: 2388, result: "draw" },
+    ],
+    performanceRating: 2320,
+  },
+])(
+  "performanceRatingNoRaising: [$opponents, $performanceRating]",
+  ({ opponents, performanceRating }) => {
+    expect(Math.round(calculatePerformanceRating(opponents))).toBe(
+      performanceRating
+    );
+  }
+);

@@ -92,11 +92,50 @@ const ratingFloorTable = {
 export function getRequiredTotalRating(nRounds, score, normType) {
   const minimumRequiredTotalRating =
     requiredAverageRatingTable[normType] * nRounds;
-  const p = Math.round((100 * score) / nRounds) / 100;
+  const p = getPValue(score, nRounds);
   const dp = dpTable[p];
   const Rp = requiredPerformanceTable[normType];
   const Ra = Rp - dp;
   return Math.max(Ra * nRounds, minimumRequiredTotalRating);
+}
+
+/**
+ * Get the value for `p` in the formula for rating performance.
+ *
+ * It is defined as `(total score / number of rounds)` rounded to the nearest
+ * one-hundredth.
+ */
+function getPValue(score, nRounds) {
+  return Math.round((100 * score) / nRounds) / 100;
+}
+/**
+ * Calculate the performance rating of a player based on the current results.
+ *
+ * Unrated players counts as 1400. If normType is provided, the lowest rated player with
+ * a rating lower than the rating floor corresponding to the norm type will get the
+ * rating raised to the rating floor.
+ */
+export function calculatePerformanceRating(opponents, normType) {
+  let opponentsWithResult = opponents.filter(
+    (opponent) => opponent.result !== ""
+  );
+  // Unrated players count as a fixed rating.
+  let opponentRatings = opponentsWithResult.map((opponent) =>
+    opponent.rating === "unrated" ? unratedRating : opponent.rating
+  );
+  let totalRating = opponentRatings.reduce((a, b) => a + b, 0);
+  if (normType) {
+    // The lowest rated player can get raised to the rating floor for the norm type.
+    let minimumRating = Math.min(...opponentRatings);
+    if (minimumRating < ratingFloorTable[normType]) {
+      totalRating += ratingFloorTable[normType] - minimumRating;
+    }
+  }
+
+  const Ra = totalRating / opponentsWithResult.length;
+  const score = getTotalScore(opponentsWithResult);
+  const p = getPValue(score, opponentsWithResult.length);
+  return Ra + dpTable[p];
 }
 
 /**
@@ -245,7 +284,7 @@ export default function Output({ nRounds, opponents, normType }) {
   return (
     <Container>
       <Stack spacing={1} padding={1}>
-        <PerformanceRating rating={2400} />
+        <PerformanceRating rating={calculatePerformanceRating(opponents)} />
         <TotalScore score={getTotalScore(opponents)} />
         <Round
           rounds_played={getNWithResult(opponents)}
