@@ -36,6 +36,7 @@
 import React from "react";
 import { dpTable } from "./dp_table";
 import RatingRequirement from "./requirements/RatingRequirement";
+import { Paper } from "@mui/material";
 
 const resultToScore = { win: 1.0, draw: 0.5, loss: 0.0, "": 0.0 };
 const normTypeOrder = { GM: 6, IM: 5, WGM: 4, FM: 3, WIM: 2, WFM: 1, "": 0 };
@@ -250,47 +251,10 @@ function normEquivalentTitles(opponents, normType) {
 
 export default function Requirements({ nRounds, opponents, normType }) {
   return (
-    <>
-      <h2 className="header header-requirements">Norm Requirements</h2>
-      <p>
-        In the remaining{" "}
-        <span className="n-rounds-remaining">
-          {getNWithoutResult(opponents)} rounds
-        </span>{" "}
-        you have the following requirements for a{" "}
-        <span className="norm-type">{normType}</span> norm:
-      </p>
-      <div className="requirements-rating">
-        <h3 className="header header-requirements-rating">Rating</h3>
-        <ol>
-          {reqPerScore(nRounds, opponents, normType).map((req) => (
-            <li className="requirements-rating-item" key={req.points}>
-              <RatingRequirement
-                points={req.points}
-                requiredRating={req.averageRating}
-              />
-            </li>
-          ))}
-        </ol>
-      </div>
-      <div className="requirements-titles">
-        <h3 className="header header-requirements-titles">Title</h3>
-        <ul>
-          <li>
-            <p className="requirements-title-gm">1 opponent with a GM title</p>
-          </li>
-          <li>
-            <p className="requirements-title-im">
-              0 opponent with a IM title or higher
-            </p>
-          </li>
-          <li>
-            <p className="requirements-title-fm">
-              1 opponent with a FM title or higher
-            </p>
-          </li>
-        </ul>
-      </div>
-    </>
+    <Paper>
+      <RatingRequirement
+        rows={reqPerScore(nRounds, opponents, normType)}
+      ></RatingRequirement>
+    </Paper>
   );
 }

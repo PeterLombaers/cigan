@@ -27,7 +27,7 @@ function App() {
     <React.Fragment>
       <CssBaseline />
       <Typography variant="h1">Can I Get A Norm?</Typography>
-      <Stack direction="row">
+      <Stack direction="row" spacing={2}>
         <Input
           nRounds={nRounds}
           setNRounds={setNRounds}
