@@ -27,7 +27,7 @@ export default function Type({ normType, setNormType }) {
         WGM
       </ToggleButton>
       <ToggleButton value="WIM" aria-label="WIM norm">
-        GM
+        WIM
       </ToggleButton>
     </ToggleButtonGroup>
   );
