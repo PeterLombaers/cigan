@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import Input from "./Input";
-import Requirements from "./Requirements";
+import Output from "./Output";
 import CssBaseline from "@mui/material/CssBaseline";
-import { Stack } from "@mui/material";
+import { Container } from "@mui/material";
 import { Typography } from "@mui/material";
 
 function App() {
@@ -26,8 +26,10 @@ function App() {
   return (
     <React.Fragment>
       <CssBaseline />
-      <Typography variant="h1">Can I Get A Norm?</Typography>
-      <Stack direction="row" spacing={2}>
+      <Typography variant="h1" align="center">
+        Can I Get A Norm?
+      </Typography>
+      <Container>
         <Input
           nRounds={nRounds}
           setNRounds={setNRounds}
@@ -36,12 +38,12 @@ function App() {
           opponents={opponents}
           setOpponents={setOpponents}
         />
-        <Requirements
+        <Output
           nRounds={nRounds}
           opponents={opponents.slice(0, nRounds)}
           normType={normType}
         />
-      </Stack>
+      </Container>
     </React.Fragment>
   );
 }

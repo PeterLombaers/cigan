@@ -49,7 +49,7 @@ export default function OpponentRating({ round, rating, setRating }) {
     <TextField
       id={"rating-round-" + round}
       error={error.hasError}
-      variant="outlined"
+      variant="standard"
       value={rating}
       label="rating"
       helperText={error.helperText}

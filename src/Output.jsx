@@ -35,8 +35,12 @@
 
 import React from "react";
 import { dpTable } from "./dp_table";
-import RatingRequirement from "./requirements/RatingRequirement";
-import { Paper } from "@mui/material";
+import RatingTable from "./output/RatingTable";
+import { Container, Paper } from "@mui/material";
+import PerformanceRating from "./output/PerformanceRating";
+import TotalScore from "./output/TotalScore";
+import Round from "./output/Rounds";
+import { Stack } from "@mui/material";
 
 const resultToScore = { win: 1.0, draw: 0.5, loss: 0.0, "": 0.0 };
 const normTypeOrder = { GM: 6, IM: 5, WGM: 4, FM: 3, WIM: 2, WFM: 1, "": 0 };
@@ -129,6 +133,12 @@ function getTotalScore(opponents) {
 function getNWithoutResult(opponents) {
   return opponents
     .map((opponent) => (opponent.result === "" ? 1 : 0))
+    .reduce((a, b) => a + b, 0);
+}
+
+function getNWithResult(opponents) {
+  return opponents
+    .map((opponent) => (opponent.result === "" ? 0 : 1))
     .reduce((a, b) => a + b, 0);
 }
 
@@ -231,30 +241,20 @@ function reqPerScore(nRounds, opponents, normType) {
   return requiredPerScore;
 }
 
-function totalTitlesOpen(opponents) {
-  return opponents
-    .map((opponent) => normTypeOrder[opponent.title])
-    .filter((num) => num >= normTypeOrder[FM]).length;
-}
-
-function totalTitlesWomen(opponents) {
-  return opponents
-    .map((opponent) => normTypeOrder[opponent.title])
-    .filter((num) => num >= normTypeOrder[WFM]).length;
-}
-
-function normEquivalentTitles(opponents, normType) {
-  return opponents
-    .map((opponent) => normTypeOrder[opponent.title])
-    .filter((num) => num >= normTypeOrder[normType]).length;
-}
-
-export default function Requirements({ nRounds, opponents, normType }) {
+export default function Output({ nRounds, opponents, normType }) {
   return (
-    <Paper>
-      <RatingRequirement
-        rows={reqPerScore(nRounds, opponents, normType)}
-      ></RatingRequirement>
-    </Paper>
+    <Container>
+      <Stack spacing={1} padding={1}>
+        <PerformanceRating rating={2400} />
+        <TotalScore score={getTotalScore(opponents)} />
+        <Round
+          rounds_played={getNWithResult(opponents)}
+          rounds_left={getNWithoutResult(opponents)}
+        ></Round>
+        <RatingTable
+          rows={reqPerScore(nRounds, opponents, normType)}
+        ></RatingTable>
+      </Stack>
+    </Container>
   );
 }

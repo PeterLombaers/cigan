@@ -13,7 +13,7 @@ function rowIdentifier(points) {
   return points.toFixed(1).toString().replace(".", "");
 }
 
-export default function RatingRequirement({ rows }) {
+export default function RatingTable({ rows }) {
   return (
     <TableContainer component={Paper}>
       <Table aria-label="rating-requirements-table">
@@ -27,7 +27,9 @@ export default function RatingRequirement({ rows }) {
           {rows.map((row) => (
             <TableRow key={rowIdentifier(row.points)}>
               <TableCell align="center">{row.points.toFixed(1)}</TableCell>
-              <TableCell align="center">{row.averageRating.toFixed(2)}</TableCell>
+              <TableCell align="center">
+                {row.averageRating.toFixed(2)}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>

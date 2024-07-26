@@ -1,8 +1,11 @@
 import React from "react";
-import Opponent from "./input/Opponent.jsx";
 import Rounds from "./input/Rounds.jsx";
 import Type from "./input/NormType.jsx";
-import { List, ListItem, Stack, Paper, ListSubheader, Typography } from "@mui/material";
+import {
+  Stack,
+  Container,
+} from "@mui/material";
+import OpponentList from "./input/OpponentList.jsx";
 
 export default function Input({
   nRounds,
@@ -21,23 +24,16 @@ export default function Input({
   }
 
   return (
-    <Paper variant="elevation">
+    <Container>
       <Stack>
         <Type normType={normType} setNormType={setNormType} />
         <Rounds nRounds={nRounds} setNRounds={setNRounds} />
-        <Typography variant="button" pl={1} pt={1}>Opponents: </Typography>
-        <List dense>
-          {opponents.map((opponent) =>
-            opponent.round <= nRounds ? (
-              <ListItem>
-                <Opponent opponent={opponent} setOpponent={setOpponent} />
-              </ListItem>
-            ) : (
-              false
-            )
-          )}
-        </List>
+        <OpponentList
+          nRounds={nRounds}
+          opponents={opponents.slice(0, nRounds)}
+          setOpponent={setOpponent}
+        />
       </Stack>
-    </Paper>
+    </Container>
   );
 }
