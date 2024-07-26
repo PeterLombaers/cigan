@@ -1,5 +1,28 @@
 import React from "react";
 import TextField from "@mui/material/TextField";
+import { useTheme } from "@mui/material";
+
+// Measure the width of a piece of text.
+const getTextWidth = (text, font) => {
+  const canvas = document.createElement("canvas");
+  const context = canvas.getContext("2d");
+  context.font = font;
+  const metrics = context.measureText(text);
+  return metrics.width;
+};
+
+/**
+ * Calculate the width that the text field should minimally have.
+ *
+ * The text field will either contain a four digit opponent rating or 'unrated'. However
+ * if the input is wrong the field will get the label "rating or 'unrated'".
+ */
+const calculateTextFieldWidth = () => {
+  const theme = useTheme();
+  const fontSize = theme.typography.caption.fontSize;
+  const fontFamily = theme.typography.fontFamily;
+  return getTextWidth("rating or 'unrated'", `${fontSize}px ${fontFamily}`);
+};
 
 export default function OpponentRating({ round, rating, setRating }) {
   const [error, setError] = React.useState({
@@ -33,6 +56,7 @@ export default function OpponentRating({ round, rating, setRating }) {
       onChange={(event) => {
         handleChange(event.target.value);
       }}
+      sx={{ width: calculateTextFieldWidth() * 1.7}}
     />
   );
 }
