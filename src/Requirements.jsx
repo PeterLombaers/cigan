@@ -39,17 +39,36 @@ import RatingRequirement from "./requirements/RatingRequirement";
 
 const resultToScore = { win: 1.0, draw: 0.5, loss: 0.0, "": 0.0 };
 const normTypeOrder = { GM: 6, IM: 5, WGM: 4, FM: 3, WIM: 2, WFM: 1, "": 0 };
+const minRequiredScorePerc = 0.35;
+const unratedRating = 1400;
 
-const requiredPerformance = {
+const requiredPerformanceTable = {
   GM: 2599.5,
   IM: 2449.5,
   WGM: 2399.5,
   WIM: 2249.5,
 };
 
+const requiredAverageRatingTable = {
+  GM: 2379.5,
+  IM: 2229.5,
+  WGM: 2179.5,
+  WIM: 2129.5,
+};
+
+const ratingFloorTable = {
+  GM: 2200,
+  IM: 2050,
+  WGM: 2000,
+  WIM: 1850,
+};
+
 /**
  * Given score, number of rounds and norm type, get the required total rating of the
  * opponents.
+ *
+ * Note that there is a minimum required average rating per norm type, so there is also
+ * a corresponding mimnum required total rating.
  *
  * Example
  * -------
@@ -65,27 +84,48 @@ const requiredPerformance = {
  * @param {normType} normType  Type of norm.
  * @returns {number}  Required total rating of the opponents.
  */
-function requiredTotalRating(nRounds, score, normType) {
+export function getRequiredTotalRating(nRounds, score, normType) {
+  const minimumRequiredTotalRating =
+    requiredAverageRatingTable[normType] * nRounds;
   const p = Math.round((100 * score) / nRounds) / 100;
   const dp = dpTable[p];
-  const Rp = requiredPerformance[normType];
+  const Rp = requiredPerformanceTable[normType];
   const Ra = Rp - dp;
-  return Ra * nRounds;
+  return Math.max(Ra * nRounds, minimumRequiredTotalRating);
 }
 
-function totalRating(opponents) {
+/**
+ * At any point in the tournament, we want to know how much we need to score and against
+ * what opposition to get a norm.
+ *
+ * We need to score at least 35%, and we can score at most the current score plus the
+ * number of remaining rounds.
+ *
+ * Otherwise, for each possible score between the minimum required score and the
+ * maximum score we want:
+ *  - The average rating needed in the remaining rounds without raising any remaining
+ *  opponent rating to the rating floor:
+ *
+ *  - The average rating needed in the remaining rounds if there is one remaining player
+ *  whose rating will be raised to the rating floor.
+ *
+ *  - The previous opponent with the lowest rating below the rating floor.
+ *
+ */
+
+function getTotalRating(opponents) {
   return opponents
     .map((opponent) => (isNaN(opponent.rating) ? 0 : opponent.rating))
     .reduce((a, b) => a + b, 0);
 }
 
-function totalScore(opponents) {
+function getTotalScore(opponents) {
   return opponents
     .map((opponent) => resultToScore[opponent.result])
     .reduce((a, b) => a + b, 0);
 }
 
-function roundsRemaining(opponents) {
+function getNWithoutResult(opponents) {
   return opponents
     .map((opponent) => (opponent.result === "" ? 1 : 0))
     .reduce((a, b) => a + b, 0);
@@ -95,22 +135,99 @@ export function roundUpToHalfPoint(scorePerc) {
   return Math.ceil(scorePerc * 2) / 2;
 }
 
+/**
+ * Calculate the minimum required score in a tournament with given number of rounds.
+ *
+ * Fide Handbook (1.4.8): 35% for all norm types
+ *
+ * @param {number} nRounds Number of rounds in the tournament.
+ * @returns {number} Minimum required score.
+ */
+export function getMinRequiredScore(nRounds) {
+  return roundUpToHalfPoint(nRounds * minRequiredScorePerc);
+}
+
+/**
+ * Get the lowest opponent rating.
+ *
+ * @param {*} opponents
+ * @returns The lowest rating, or null if there are no opponents with a rating.
+ */
+export function getLowestRating(opponents) {
+  let minRating = opponents
+    .filter((opponent) => !isNaN(opponent.rating))
+    .map((opponent) => opponent.rating)
+    .reduce((min, rating) => Math.min(min, rating), Infinity);
+  return minRating === Infinity ? null : minRating;
+}
+
+/**
+ * Get the required average rating in the remaining rounds if none of them will be
+ * raised to the rating floor, given a score over all rounds.
+ *
+ * @param {*} nRounds     The number of rounds.
+ * @param {*} score       The score that will be achieved over all rounds.
+ * @param {*} opponents   Previous opponents.
+ * @param {*} normType    The type of norm.
+ * @returns The average rating  required from the opponents in the remaining rounds,
+ * assuming that the player will achieve a total score of `score`, and none of the
+ * ratings in the remaining rounds will be raised to the rating floor. If there are no
+ * rounds remaining, this will return null.
+ */
+function getRequiredAverageNoRaised(nRounds, score, opponents, normType) {
+  const nRoundsRemaining = getNWithoutResult(opponents);
+  if (nRoundsRemaining === 0) {
+    return null;
+  }
+  let totalRating = getTotalRating(opponents);
+  const lowestRating = getLowestRating(opponents);
+  const ratingFloor = ratingFloorTable[normType];
+  if (lowestRating !== null && lowestRating < ratingFloor) {
+    totalRating += ratingFloor - lowestRating;
+  }
+  const requiredTotalRating = getRequiredTotalRating(nRounds, score, normType);
+  const requiredRemainingRating = requiredTotalRating - totalRating;
+  return requiredRemainingRating / nRoundsRemaining;
+}
+
+function getRequiredAverageRaised(nRounds, score, opponents, normType) {
+  const nRoundsRemaining = getNWithoutResult(opponents);
+  if (nRoundsRemaining === 0) {
+    return null;
+  }
+  let totalRating = getTotalRating(opponents);
+  const ratingFloor = ratingFloorTable[normType];
+  const requiredTotalRating = getRequiredTotalRating(nRounds, score, normType);
+  const requiredRemainingRating = requiredTotalRating - totalRating;
+  if (nRoundsRemaining === 1) {
+    return requiredRemainingRating < ratingFloor ? 0 : requiredRemainingRating;
+  } else {
+    return (requiredRemainingRating - ratingFloor) / (nRoundsRemaining - 1);
+  }
+}
+
 function reqPerScore(nRounds, opponents, normType) {
-  let currentScore = totalScore(opponents);
-  let currentRating = totalRating(opponents);
-  let nRoundsRemaining = roundsRemaining(opponents);
-  return Array.from(Array(nRoundsRemaining * 2 + 1).keys())
-    .map((n) => n / 2)
-    .map(function (points) {
-      let averageRating =
-        (requiredTotalRating(nRounds, points + currentScore, normType) -
-          currentRating) /
-        nRoundsRemaining;
-      return {
-        points: points,
-        averageRating: averageRating,
-      };
-    });
+  const currentScore = getTotalScore(opponents);
+  const nRoundsRemaining = getNWithoutResult(opponents);
+  const minRequiredScore = roundUpToHalfPoint(nRounds * minRequiredScorePerc);
+  const maxPossibleScore = currentScore + nRoundsRemaining;
+  if (maxPossibleScore < minRequiredScore) {
+    return [];
+  }
+  const currentTotalRating = getTotalRating(opponents);
+  const requiredPerScore = new Array(
+    (maxPossibleScore - minRequiredScore) * 2 + 1
+  );
+  for (let i = 0; i < requiredPerScore.length; i++) {
+    const points = minRequiredScore + i / 2;
+    const totalRequired = getRequiredTotalRating(nRounds, points, normType);
+    const remainingRequired = totalRequired - currentTotalRating;
+    requiredPerScore[i] = {
+      points: points,
+      averageRating: remainingRequired / nRoundsRemaining,
+    };
+  }
+  return requiredPerScore;
 }
 
 function totalTitlesOpen(opponents) {
@@ -138,7 +255,7 @@ export default function Requirements({ nRounds, opponents, normType }) {
       <p>
         In the remaining{" "}
         <span className="n-rounds-remaining">
-          {roundsRemaining(opponents)} rounds
+          {getNWithoutResult(opponents)} rounds
         </span>{" "}
         you have the following requirements for a{" "}
         <span className="norm-type">{normType}</span> norm:
