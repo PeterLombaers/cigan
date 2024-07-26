@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Header from "./Header";
 import Input from "./Input";
 import Requirements from "./Requirements";
+import CssBaseline from '@mui/material/CssBaseline';
 
 function App() {
   const [nRounds, setNRounds] = useState(9);
@@ -22,7 +23,8 @@ function App() {
     { round: 13, rating: 0, result: "" },
   ]);
   return (
-    <>
+    <React.Fragment>
+      <CssBaseline />
       <Header />
       <Input
         nRounds={nRounds}
@@ -37,7 +39,7 @@ function App() {
         opponents={opponents.slice(0, nRounds)}
         normType={normType}
       />
-    </>
+    </React.Fragment>
   );
 }
 
