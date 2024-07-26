@@ -28,6 +28,7 @@ export default function OpponentRating({ round, rating, setRating }) {
       error={error.hasError}
       variant="outlined"
       value={rating}
+      label="rating"
       helperText={error.helperText}
       onChange={(event) => {
         handleChange(event.target.value);
