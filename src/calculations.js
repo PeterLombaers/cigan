@@ -117,11 +117,10 @@ export function getRequiredAverage(
   }
   const totalRating = getTotalRating(opponents);
   const minimumRating = getMinimumRating(opponents);
-  const nRounds = nRounds + opponents.length;
+  const nRounds = nRoundsRemaining + opponents.length;
   const requiredTotalRating = getRequiredTotalRating(nRounds, score, normType);
   const requiredRemainingRating = requiredTotalRating - totalRating;
-
-  if (minimumRating < ratingFloorTable[normType]) {
+  if (minimumRating !== null && minimumRating < ratingFloorTable[normType]) {
     // It's possible to raise one of the previous opponents to the rating floor.
     output.noRaised = {
       requiredAverageRating:
