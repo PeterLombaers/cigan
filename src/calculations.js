@@ -83,101 +83,88 @@ export function getRequiredTotalRating(nRounds, score, normType) {
  * Get the required average rating in the remaining rounds if none of the rating in the
  * remaining rounds will be raised to the rating floor.
  *
- * @param {*} nRounds     The number of rounds.
+ * @param {*} nRoundsRemaining     The number of rounds remaining.
  * @param {*} score       The score that will be achieved over all rounds.
- * @param {*} opponents   List of previous opponents.
+ * @param {*} opponents   List of previous opponents. All of them should have a result.
  * @param {*} normType    The type of norm.
- * @returns An object with keys 'requiredAverageRating' and 'raisedRating'.
- * The first contains average rating required from the opponents in the remaining rounds
- * assuming that the player will achieve a total score of `score`, and none of the
- * ratings in the remaining rounds will be raised to the rating floor. If there are no
- * rounds remaining, this will have value null.
- * The second contains the value of the rating of the previous opponent that has been
- * raised to the rating floor. If all ratings were already above the rating floor this
- * will have value null.
+ * @returns An object with keys 'noRaised' and 'raised', each containing an object with
+ * keys 'requiredAverageRating' and 'raisedRating'.
+ *
+ * 'noRaised' contains the information for the scenario where none of the remaining
+ * opponents has their rating raised to the rating floor (but one of the previous
+ * opponents can have their rating raised). 'requiredAverageRating' contains the average
+ * rating the that opponents should have in the remaining rounds. 'raisedRating'
+ * contains the rating of the previous opponents that got raised, or null if no rating
+ * was raised.
+ *
+ * 'raised' contains the information for the scenario where one of the remaining
+ * opponents has their rating raised to the rating floor (and therefore none of the
+ * previous opponents will have a raised rating). If no such scenario is possible,
+ * 'raised' will contain the value null. If such a scenario is possible,
+ * 'requiredAverageRating' will contain the average rating of the opponents in the
+ * remaining rounds minus one round. 'raisedRating' will contain the maximum rating of
+ * the opponent in the remaining rounds that gets it's rating raised.
  */
-function getRequiredAverageNoRaised(nRounds, score, opponents, normType) {
-  const nRoundsRemaining = nRounds - opponents.length;
+export function getRequiredAverage(
+  nRoundsRemaining,
+  score,
+  opponents,
+  normType
+) {
+  let output = { noRaised: null, raised: null };
   if (nRoundsRemaining <= 0) {
-    return null;
+    return output;
   }
-  // Unrated players count as a fixed rating.
-  let opponentRatings = opponentsWithResult.map((opponent) =>
-    opponent.rating === "unrated" ? unratedRating : opponent.rating
-  );
-  let totalRating = opponentRatings.reduce((a, b) => a + b, 0);
-  // The lowest rated player can get raised to the rating floor for the norm type.
-  const minimumRating = Math.min(...opponentRatings);
-  let ratingHasBeenRaised = false;
+  const totalRating = getTotalRating(opponents);
+  const minimumRating = getMinimumRating(opponents);
+  const nRounds = nRounds + opponents.length;
+  const requiredTotalRating = getRequiredTotalRating(nRounds, score, normType);
+  const requiredRemainingRating = requiredTotalRating - totalRating;
+
   if (minimumRating < ratingFloorTable[normType]) {
-    totalRating += ratingFloorTable[normType] - minimumRating;
-    ratingHasBeenRaised = true;
+    // It's possible to raise one of the previous opponents to the rating floor.
+    output.noRaised = {
+      requiredAverageRating:
+        (requiredRemainingRating - ratingFloorTable[normType] + minimumRating) /
+        nRoundsRemaining,
+      raisedRating: minimumRating,
+    };
+  } else {
+    output.noRaised = {
+      requiredAverageRating: requiredRemainingRating / nRoundsRemaining,
+      raisedRating: null,
+    };
   }
 
-  const requiredTotalRating = getRequiredTotalRating(nRounds, score, normType);
-  const requiredRemainingRating = requiredTotalRating - totalRating;
-  return {
-    requiredAverageRating: requiredRemainingRating / nRoundsRemaining,
-    raisedRating: ratingHasBeenRaised ? minimumRating : null,
-  };
-}
-
-/**
- * Get the required average rating in the remaining rounds if the rating of one of the
- * opponents in the remaining rounds is raised to the rating floor.
- *
- * This means that in the remaining rounds there will be an opponent with a rating lower
- * than any of the previous opponents, and also lower than the rating floor of the norm
- * type.
- *
- * @param {*} nRounds     The number of rounds.
- * @param {*} score       The score that will be achieved over all rounds.
- * @param {*} opponents   List of previous opponents.
- * @param {*} normType    The type of norm.
- * @returns An object with keys 'requiredAverageRating' and 'raisedRating'.
- * The first contains the average rating required of the opponents in the remaining
- * rounds, excluding one player who'll have their rating raised to the rating floor for
- * the norm type, assuming the player makes the given total score.
- * The second contains the maximum rating of the opponent whose rating will get raised.
- * If the number of remaining rounds is 0, or there is no way to make a norm while
- * raising an opponent rating to the rating floor, then the function will return null.
- */
-function getRequiredAverageRaised(nRounds, score, opponents, normType) {
-  const nRoundsRemaining = nRounds - opponents.length;
-  if (nRoundsRemaining <= 0) {
-    return null;
-  }
-  // Unrated players count as a fixed rating.
-  let opponentRatings = opponentsWithResult.map((opponent) =>
-    opponent.rating === "unrated" ? unratedRating : opponent.rating
-  );
-  let totalRating = opponentRatings.reduce((a, b) => a + b, 0);
-  const minimumRating = Math.min(...opponentRatings);
-  const raisedRating = Math.min(minimumRating, ratingFloorTable[normType]);
-  const requiredTotalRating = getRequiredTotalRating(nRounds, score, normType);
-  const requiredRemainingRating = requiredTotalRating - totalRating;
+  // The maximum rating that one of the remaining opponents can have so that it is the
+  // rating that will be raised.
+  const raisedRating =
+    output.noRaised.raisedRating === null
+      ? ratingFloorTable[normType]
+      : output.noRaised.raisedRating;
   if (nRoundsRemaining === 1) {
     if (raisedRating < requiredRemainingRating) {
-      return null;
+      output.raised = null;
     } else {
-      return {
-        requiredAverageRating: null,
+      output.raised = {
+        requiredAverageRating: 0,
         raisedRating: raisedRating,
       };
     }
   } else {
-    return {
+    output.raised = {
       requiredAverageRating:
         (requiredTotalRating - ratingFloorTable[normType]) / (nRounds - 1),
       raisedRating: raisedRating,
     };
   }
+  return output;
 }
 
 /**
  * Get the total score against a list of opponents.
  */
-function getTotalScore(opponents) {
+export function getTotalScore(opponents) {
   return opponents
     .map((opponent) => resultToScore[opponent.result])
     .reduce((a, b) => a + b, 0);
@@ -188,9 +175,25 @@ function getTotalScore(opponents) {
  *
  * Unrated opponents count as a fixed rating of 1400.
  */
-function getTotalRating(opponents) {
+export function getTotalRating(opponents) {
   return opponents
     .map((opponent) => (isNaN(opponent.rating) ? 0 : opponent.rating))
     .map((rating) => (rating === "unrated" ? unratedRating : rating))
     .reduce((a, b) => a + b, 0);
+}
+
+/**
+ * Get the minimum rating of all opponents.
+ *
+ * Unrated opponents count as a fixed rating of 1400.
+ * If all opponnents have a missing rating, it will return null.
+ */
+function getMinimumRating(opponents) {
+  let opponentRatings = opponents
+    .map((opponent) => (isNaN(opponent.rating) ? Infinity : opponent.rating))
+    .map((opponent) =>
+      opponent.rating === "unrated" ? unratedRating : opponent.rating
+    );
+  const minimumRating = Math.min(...opponentRatings);
+  return minimumRating === Infinity ? null : minimumRating;
 }
