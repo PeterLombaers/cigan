@@ -6,6 +6,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Typography,
 } from "@mui/material";
 import React from "react";
 
@@ -14,6 +15,13 @@ function rowIdentifier(points) {
 }
 
 export default function RatingTable({ rows }) {
+  if (!rows) {
+    return (
+      <Typography>
+        You can no longer get the minimum required number of points for a norm.
+      </Typography>
+    );
+  }
   return (
     <TableContainer component={Paper}>
       <Table aria-label="rating-requirements-table">
@@ -25,10 +33,10 @@ export default function RatingTable({ rows }) {
         </TableHead>
         <TableBody>
           {rows.map((row) => (
-            <TableRow key={rowIdentifier(row.points)}>
-              <TableCell align="center">{row.points.toFixed(1)}</TableCell>
+            <TableRow key={rowIdentifier(row.score)}>
+              <TableCell align="center">{row.score.toFixed(1)}</TableCell>
               <TableCell align="center">
-                {row.averageRating.toFixed(2)}
+                {row.data.noRaised.requiredAverageRating.toFixed(1)}
               </TableCell>
             </TableRow>
           ))}
