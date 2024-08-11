@@ -14,6 +14,18 @@ function rowIdentifier(points) {
   return points.toFixed(1).toString().replace(".", "");
 }
 
+function maxScoreToShow(rows) {
+  for (let i = 0; i < rows.length - 1; i++) {
+    if (
+      rows[i].data.noRaised.requiredAverageRating ===
+      rows[i + 1].data.noRaised.requiredAverageRating
+    ) {
+      return { score: rows[i].score, cropped: true };
+    }
+  }
+  return { score: rows.at(-1), cropped: false };
+}
+
 export default function RatingTable({ rows }) {
   if (!rows) {
     return (
@@ -22,6 +34,8 @@ export default function RatingTable({ rows }) {
       </Typography>
     );
   }
+  const maxScore = maxScoreToShow(rows).score;
+  const cropped = maxScoreToShow(rows).cropped;
   return (
     <TableContainer component={Paper}>
       <Table aria-label="rating-requirements-table">
@@ -32,14 +46,22 @@ export default function RatingTable({ rows }) {
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map((row) => (
-            <TableRow key={rowIdentifier(row.score)}>
-              <TableCell align="center">{row.score.toFixed(1)}</TableCell>
-              <TableCell align="center">
-                {row.data.noRaised.requiredAverageRating.toFixed(1)}
-              </TableCell>
-            </TableRow>
-          ))}
+          {rows
+            .filter((row) => row.score <= maxScore)
+            .map((row) => (
+              <TableRow key={rowIdentifier(row.score)}>
+                <TableCell align="center">
+                  {row.score.toFixed(1)}
+                  {
+                    // Add a plus to the final score if the rows are cropped.
+                    row.score === maxScore && cropped ? "+" : ""
+                  }
+                </TableCell>
+                <TableCell align="center">
+                  {row.data.noRaised.requiredAverageRating.toFixed(1)}
+                </TableCell>
+              </TableRow>
+            ))}
         </TableBody>
       </Table>
     </TableContainer>

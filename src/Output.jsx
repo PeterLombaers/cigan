@@ -51,7 +51,7 @@ function getRatingTableData(opponents, normType) {
     score += 0.5
   ) {
     ratingTableData.push({
-      score: score,
+      score: score - totalScore,
       data: getRequiredAverage(
         nRoundsRemaining,
         score,
