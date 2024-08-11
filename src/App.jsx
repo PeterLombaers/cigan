@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Input from "./Input";
 import Output from "./Output";
 import CssBaseline from "@mui/material/CssBaseline";
-import { Container } from "@mui/material";
+import { Stack } from "@mui/material";
 import { Typography } from "@mui/material";
 
 function App() {
@@ -29,7 +29,7 @@ function App() {
       <Typography variant="h1" align="center">
         Can I Get A Norm?
       </Typography>
-      <Container>
+      <Stack direction="row">
         <Input
           nRounds={nRounds}
           setNRounds={setNRounds}
@@ -43,7 +43,7 @@ function App() {
           opponents={opponents.slice(0, nRounds)}
           normType={normType}
         />
-      </Container>
+      </Stack>
     </React.Fragment>
   );
 }

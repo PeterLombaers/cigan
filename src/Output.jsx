@@ -1,10 +1,7 @@
 import React from "react";
 import RatingTable from "./output/RatingTable";
 import { Container } from "@mui/material";
-import PerformanceRating from "./output/PerformanceRating";
-import TotalScore from "./output/TotalScore";
-import Round from "./output/Rounds";
-import { Stack } from "@mui/material";
+import { Stack, Paper, Typography } from "@mui/material";
 import {
   calculatePerformanceRating,
   getTotalScore,
@@ -64,15 +61,33 @@ function getRatingTableData(opponents, normType) {
 }
 
 export default function Output({ opponents, normType }) {
+  const performanceRating = calculatePerformanceRating(opponents);
   return (
     <Container>
-      <Stack spacing={1} padding={1}>
-        <PerformanceRating rating={calculatePerformanceRating(opponents)} />
-        <TotalScore score={getTotalScore(opponents)} />
-        <Round
-          rounds_played={getNWithResult(opponents)}
-          rounds_left={getNWithoutResult(opponents)}
-        ></Round>
+      <Stack direction="column" spacing={1}>
+        <Stack spacing={1} direction="row" flexWrap="flex">
+          <Paper>
+            <Typography variant="button">
+              Performance Rating:{" "}
+              {isNaN(performanceRating) ? 0 : performanceRating.toFixed(1)}
+            </Typography>
+          </Paper>{" "}
+          <Paper>
+            <Typography variant="button">
+              Total Score: {getTotalScore(opponents)}
+            </Typography>
+          </Paper>
+          <Paper>
+            <Typography variant="button">
+              Rounds Played: {getNWithResult(opponents)}
+            </Typography>
+          </Paper>
+          <Paper>
+            <Typography variant="button">
+              Rounds Left: {getNWithoutResult(opponents)}
+            </Typography>
+          </Paper>
+        </Stack>
         <RatingTable
           rows={getRatingTableData(opponents, normType)}
         ></RatingTable>

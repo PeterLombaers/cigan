@@ -8,12 +8,7 @@ import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 import { ThemeProvider, createTheme } from "@mui/material";
 
-const theme = createTheme({
-  palette: {
-    primary: { main: "#a63b3b" },
-    secondary: { main: "#3ba6a6" },
-  },
-});
+const theme = createTheme({});
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
